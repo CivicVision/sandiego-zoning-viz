@@ -1,5 +1,10 @@
 require("https://d3js.org/d3.v5.min.js")
 require("topojson-client@3")
+
+var sandiego_buildings = d3.json('https://open-data-cv.s3.amazonaws.com/sandiego_buildings.json')
+var sandiego_features = topojson.feature(sandiego_buildings, sandiego_buildings.objects.buildings).features.filter(d => "zone_name" in d.properties)
+var buildings = { type: "FeatureCollection", features: sandiego_features }
+
 const height = Math.round(900 / 960 * width);
   const indicator = 'zone_name';
   const noDataColor = '#ccc';
@@ -21,7 +26,8 @@ const height = Math.round(900 / 960 * width);
     return noDataColor;
   }
   
-  const context = DOM.context2d(width, height);
+  const context = canvas.node().getContext("2d")
+  canvas = d3.select("body").append("canvas").attr("width", width).attr("height", height)
   
   function draw() {
     const path = d3.geoPath()
@@ -48,10 +54,9 @@ const height = Math.round(900 / 960 * width);
     context.restore();
   }
   
-  yield context.canvas;
   
-  const canvas = context.canvas;
-  d3.select('canvas').call(d3.zoom().scaleExtent([1, 8]).on("zoom", zoom))
+  
+  canvas.call(d3.zoom().scaleExtent([1, 8]).on("zoom", zoom))
   
   context.scale(scale, scale);
   context.lineJoin = "round";
@@ -59,8 +64,4 @@ const height = Math.round(900 / 960 * width);
   
   draw()
   
-  return context.canvas;
 }
-var sandiego_buildings = d3.json('https://open-data-cv.s3.amazonaws.com/sandiego_buildings.json')
-sandiego_features = topojson.feature(sandiego_buildings, sandiego_buildings.objects.buildings).features.filter(d => "zone_name" in d.properties)
-buildings = { type: "FeatureCollection", features: sandiego_features }
